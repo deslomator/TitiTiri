@@ -1,9 +1,7 @@
 package com.deslomator.tititiri
 
-import android.graphics.fonts.FontStyle
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
@@ -21,8 +19,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringArrayResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -134,14 +130,14 @@ fun Memorias() {
             onDismissRequest = { expanded = false }
         ) {
             Log.d("Memorias()", "tamaño ${items.size}")
-            items.forEachIndexed { index, value ->
+            scrambledFreqs().forEach {
                 DropdownMenuItem(
                     onClick = {
-                        state.memoriaSeleccionada = index
+                        state.memoriaSeleccionada = it.id
                         expanded = false
                     }) {
                     Text(
-                        if (index == 0) "Memoria" else value.numero.toString(),
+                        if (it.id == 0) "Memoria" else it.numero.toString(),
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center
                     )
@@ -184,15 +180,14 @@ fun Frecuencias() {
                 .width(250.dp),
             onDismissRequest = { expanded = false }
         ) {
-            Log.d("Memorias()", "tamaño ${items.size}")
-            items.forEachIndexed { index, item ->
+            scrambledFreqs().forEach {
                 DropdownMenuItem(
                     onClick = {
-                        state.frecuenciaSeleccionada = index
+                        state.frecuenciaSeleccionada = it.id
                         expanded = false
                     }) {
                     Text(
-                        if (index == 0) "Frecuencia" else item.frecuencia,
+                        if (it.id == 0) "Frecuencia" else it.frecuencia,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center
                     )
@@ -220,7 +215,7 @@ fun Zonas() {
             when (state.zonaSeleccionada) {
                 -1 -> ""
                 0 -> "Zona"
-                else -> items[state.zonaSeleccionada].zona()
+                else -> items[state.zonaSeleccionada].zonaDropdown
             },
             modifier = Modifier
                 .background(color)
@@ -236,15 +231,15 @@ fun Zonas() {
                 .width(250.dp),
             onDismissRequest = { expanded = false }
         ) {
-            items.forEachIndexed { index, item ->
-                Log.d("Zonas()", "zona() -> ${item.zonaElegida}, ${item.zona()}")
+            scrambledFreqs().forEach {
+                Log.d("Zonas()", "zona() -> ${it.zonaElegida}, ${it.zonaDropdown}")
                 DropdownMenuItem(
                     onClick = {
-                        state.zonaSeleccionada = index
+                        state.zonaSeleccionada = it.id
                         expanded = false
                     }) {
                     Text(
-                        if (index == 0) "Zona" else item.zona(),
+                        if (it.id == 0) "Zona" else it.zonaDropdown,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center
                     )
@@ -325,7 +320,7 @@ fun BotonNueva() {
                     state.zonaSeleccionada = -1
                 }
                 else -> {
-                    state.textoPregunta = item.zonaTts
+                    state.textoPregunta = item.zonaPregunta
                     state.memoriaSeleccionada = -1
                     state.frecuenciaSeleccionada = -1
                     state.zonaSeleccionada = state.pregunta

@@ -1,11 +1,8 @@
 package com.deslomator.tititiri
 
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import kotlin.random.Random
 
@@ -17,9 +14,20 @@ data class Frecuencia(
     val zona1: String,
     val zona2: String = ""
 ) {
-    var frecuencia = "$frecuenciaEntero.$frecuenciaDecimal"
-    var frecuenciaPregunta = "pase a $frecuenciaEntero.$frecuenciaDecimal"
-
+    fun frecuenciaDecimaltoString(): String {
+        return when (frecuenciaDecimal) {
+            in 0..9 -> "00$frecuenciaDecimal"
+            in 10..99 -> "0$frecuenciaDecimal"
+            else -> frecuenciaDecimal.toString()
+        }
+    }
+    var frecuencia = "$frecuenciaEntero.${frecuenciaDecimaltoString()}"
+    var frecuenciaPregunta = "pase a $frecuenciaEntero.${frecuenciaDecimaltoString()}"
+    var zonaDropdown = zona()
+        .replace("T 4", "T4")
+        .replace("4 S", "4S")
+        .replace("T 2", "T2")
+    var zonaPregunta = "está en $zonaDropdown"
     var zonaElegida: Int = 0
         private set
     fun elegirZona() { zonaElegida = if (zona2 == "") 0 else Random.nextInt(2) }
@@ -38,7 +46,7 @@ data class Frecuencia(
 
 }
 
-val frecuencias = listOf<Frecuencia>(
+val frecuencias = listOf(
     Frecuencia(0,0, 0, 0, ""),
     Frecuencia(1,1, 121, 705, "plataforma T 2 sur"),
     Frecuencia(2,2, 121, 855, "plataforma T 2 norte"),
@@ -67,4 +75,15 @@ class SeleccionViewModel : ViewModel() {
     var zonaSeleccionada by mutableStateOf(0)
     var showGood by mutableStateOf(false)
     var showBad by mutableStateOf(false)
+}
+
+fun scrambledFreqs(): List<Frecuencia> {
+    val list: MutableList<Frecuencia> = mutableListOf()
+    list.add(frecuencias[0])
+    while (list.size < frecuencias.size) {
+        val index = Random.nextInt(frecuencias.size - 1) + 1
+        val item = frecuencias[index]
+        if (!list.contains(item)) list.add(item)
+    }
+    return list
 }
