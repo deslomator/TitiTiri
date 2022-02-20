@@ -387,12 +387,7 @@ private fun SendTtsMessage(locution: String) {
     Log.d("sendTtsMessage()", "inicializando, locution: $locution")
     state.speak = false
     if (locution.length > 1) {
-        val ttsHelper = TtsHelper(LocalContext.current)
-        val msg = ttsHelper.ttsHandler.obtainMessage()
-        val bundle = msg.data
-        bundle.putString("locution", locution)
-        msg.data = bundle
-        ttsHelper.ttsHandler.sendMessage(msg)
+        TtsHelper(LocalContext.current, locution = locution)
     }
 }
 

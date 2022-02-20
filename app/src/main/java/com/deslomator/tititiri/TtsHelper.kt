@@ -7,11 +7,9 @@ import android.speech.tts.TextToSpeech
 import android.util.Log
 import java.util.*
 
-class TtsHelper(context: Context) : ContextWrapper(context) {
+class TtsHelper(context: Context, private val locution: String = "") : ContextWrapper(context) {
 
     private  lateinit var textToSpeech: TextToSpeech
-    var ttsHandler: TtsHandler
-    var phrase: String? = null
 
     private fun speak(locution: String) {
             textToSpeech.speak(
@@ -20,14 +18,6 @@ class TtsHelper(context: Context) : ContextWrapper(context) {
                 null,
                 null
             )
-    }
-
-    inner class TtsHandler(looper: Looper) : Handler(looper) {
-
-        override fun handleMessage(msg: Message) {
-            val data = msg.data
-            phrase = data.getString("locution")
-        }
     }
 
     init {
@@ -39,20 +29,11 @@ class TtsHelper(context: Context) : ContextWrapper(context) {
                 ) {
                     Log.w(TAG, "Current default language not supported")
                 }
-                phrase?.let { speak(locution = it) }
+                if (locution != "") speak(locution)
             } else {
                 Log.e(TAG, "TTS Initialization Failed")
             }
         }
-
-        val ttsThread = HandlerThread(
-            "ttsThread",
-            Process.THREAD_PRIORITY_URGENT_AUDIO
-        )
-        ttsThread.start()
-        // Get the HandlerThread's Looper and use it for our Handler
-        val ttsLooper = ttsThread.looper
-        ttsHandler = TtsHandler(ttsLooper)
     }
 
     companion object {
