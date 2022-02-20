@@ -64,6 +64,7 @@ fun Principal() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(modifier = Modifier.height(20.dp))
         Pregunta()
         Spacer(modifier = Modifier.height(100.dp))
         Opciones()
@@ -76,14 +77,33 @@ fun Principal() {
 }
 
 @Composable
+fun MyCard(
+    visible: Boolean = true,
+    text: String,
+    color: Color,
+    listener: () -> Unit) {
+    if (visible) {
+        Card(
+            modifier = Modifier
+                .width(250.dp)
+                .clickable(onClick = listener),
+            backgroundColor = color,
+            shape = RoundedCornerShape(15)
+        ) {
+            Text(
+                text = text,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(15.dp),
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
 fun Pregunta() {
-    Text(
-        state.textoPregunta,
-        modifier = Modifier
-            .background(Color.White.copy(alpha = .7f))
-            .padding(start = 60.dp, end = 60.dp, top = 15.dp, bottom = 15.dp),
-        textAlign = TextAlign.Center,
-    )
+    MyCard(text = state.textoPregunta, color = colorResource(R.color.white_alpha)) { }
 }
 
 @Composable
@@ -101,6 +121,11 @@ fun Memorias() {
     Log.d("Memorias()", "inicializando")
     val items = frecuencias
     var expanded by remember { mutableStateOf(false) }
+    val text = when (state.memoriaSeleccionada) {
+        -1 -> ""
+        0 -> "Memoria"
+        else -> items[state.memoriaSeleccionada].numero.toString()
+    }
     val color = when (state.tipo) {
         0 -> Color.Magenta.copy(alpha = .7f)
         else -> Color.White.copy(alpha = .7f)
@@ -109,19 +134,7 @@ fun Memorias() {
         .wrapContentWidth()
         .padding(10.dp)
     ) {
-        Text(
-            when (state.memoriaSeleccionada) {
-                -1 -> ""
-                0 -> "Memoria"
-                else -> items[state.memoriaSeleccionada].numero.toString()
-            },
-            modifier = Modifier
-                .background(color)
-                .width(250.dp)
-                .clickable(onClick = { if (state.tipo != 0) expanded = true })
-                .padding(10.dp),
-            textAlign = TextAlign.Center
-        )
+        MyCard(text = text, color = color) { if (state.tipo != 0) expanded = true }
         DropdownMenu(
             expanded = expanded,
             modifier = Modifier
@@ -152,6 +165,11 @@ fun Frecuencias() {
     Log.d("Frecuencias()", "inicializando")
     val items = frecuencias
     var expanded by remember { mutableStateOf(false) }
+    val text = when (state.frecuenciaSeleccionada) {
+        -1 -> ""
+        0 -> "Frecuencia"
+        else -> items[state.frecuenciaSeleccionada].frecuencia
+    }
     val color = when (state.tipo) {
         1 -> Color.Magenta.copy(alpha = .7f)
         else -> Color.White.copy(alpha = .7f)
@@ -160,19 +178,7 @@ fun Frecuencias() {
         .wrapContentWidth()
         .padding(10.dp)
     ) {
-        Text(
-            when (state.frecuenciaSeleccionada) {
-                -1 -> ""
-                0 -> "Frecuencia"
-                else -> items[state.frecuenciaSeleccionada].frecuencia
-            },
-            modifier = Modifier
-                .background(color)
-                .width(250.dp)
-                .clickable(onClick = { if (state.tipo != 1) expanded = true })
-                .padding(10.dp),
-            textAlign = TextAlign.Center
-        )
+        MyCard(text = text, color = color) { if (state.tipo != 1) expanded = true }
         DropdownMenu(
             expanded = expanded,
             modifier = Modifier
@@ -202,6 +208,11 @@ fun Zonas() {
     Log.d("Zonas()", "inicializando")
     val items = frecuencias
     var expanded by remember { mutableStateOf(false) }
+    val text = when (state.zonaSeleccionada) {
+        -1 -> ""
+        0 -> "Zona"
+        else -> items[state.zonaSeleccionada].zonaDropdown
+    }
     val color = when (state.tipo) {
         2 -> Color.Magenta.copy(alpha = .7f)
         else -> Color.White.copy(alpha = .7f)
@@ -211,19 +222,7 @@ fun Zonas() {
         .wrapContentWidth()
         .padding(10.dp)
     ) {
-        Text(
-            when (state.zonaSeleccionada) {
-                -1 -> ""
-                0 -> "Zona"
-                else -> items[state.zonaSeleccionada].zonaDropdown
-            },
-            modifier = Modifier
-                .background(color)
-                .width(250.dp)
-                .clickable(onClick = { if (state.tipo != 2) expanded = true })
-                .padding(10.dp),
-            textAlign = TextAlign.Center
-        )
+        MyCard(text = text, color = color) { if (state.tipo != 2) expanded = true }
         DropdownMenu(
             expanded = expanded,
             modifier = Modifier
@@ -251,22 +250,19 @@ fun Zonas() {
 
 @Composable
 fun BienMal() {
-    Log.d("BienMal()", "showGood: ${state.showGood}, showBad: ${state.showBad}")
     Spacer(modifier = Modifier.height(20.dp))
-    val alpha = if (!state.showGood && !state.showBad) 0f else .7f
-    Text(
-        text = when {
-            state.showBad -> "incorrecto"
-            state.showGood -> "correcto"
-            else -> ""
-        },
-        modifier = Modifier
-            .background(Color.White.copy(alpha = alpha))
-            .wrapContentWidth()
-            .padding(20.dp),
-        textAlign = TextAlign.Center,
-        style = MaterialTheme.typography.h3
-    )
+    val visible = state.showGood || state.showBad
+    val color = when {
+        state.showBad -> Color.Red.copy(alpha = .7f)
+        state.showGood -> Color.Green.copy(alpha = .7f)
+        else -> Color.White.copy(alpha = 0f)
+    }
+    val text = when {
+        state.showBad -> "incorrecto"
+        state.showGood -> "correcto"
+        else -> ""
+    }
+    MyCard(visible = visible, text = text, color = color) { }
     Spacer(modifier = Modifier.height(40.dp))
 }
 
