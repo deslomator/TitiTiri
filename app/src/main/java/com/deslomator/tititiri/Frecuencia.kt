@@ -1,5 +1,6 @@
 package com.deslomator.tititiri
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -9,10 +10,9 @@ import kotlin.random.Random
 data class Frecuencia(
     val id: Int,
     val numero: Int,
-    val frecuenciaEntero: Int,
-    val frecuenciaDecimal: Int,
-    val zona1: String,
-    val zona2: String = ""
+    private val frecuenciaEntero: Int,
+    private val frecuenciaDecimal: Int,
+    private val zonas: List<String>,
 ) {
     private fun frecuenciaDecimaltoString(): String {
         return when (frecuenciaDecimal) {
@@ -22,14 +22,17 @@ data class Frecuencia(
         }
     }
     var frecuencia = "$frecuenciaEntero.${frecuenciaDecimaltoString()}"
-    var zonaDropdown = zona()
-        .replace("T 4", "T4")
-        .replace("4 S", "4S")
-        .replace("T 2", "T2")
-    var zonaElegida: Int = 0
-        private set
-    fun elegirZona() { zonaElegida = if (zona2 == "") 0 else Random.nextInt(2) }
-    private fun zona(): String { return if (zonaElegida == 0) zona1 else zona2 }
+    private var zonaElegida: Int = 0
+    fun elegirZona() {
+        zonaElegida = Random.nextInt(zonas.size)
+        Log.d("elegirZona()", "zona elegida: $zonaElegida, zonaDropdown: ${zonaDropdown()} zonaTts: ${zonaTts()}")
+    }
+    fun zonaDropdown(): String {
+        return zonas[zonaElegida]
+            .replace("T 4", "T4")
+            .replace("4 S", "4S")
+            .replace("T 2", "T2")
+    }
 
     val numeroTts: String = "memoria $numero"
     fun frecuenciaTts(): String {
@@ -40,26 +43,26 @@ data class Frecuencia(
         }
         return "pase a $frecuenciaEntero coma $cero $frecuenciaDecimal"
     }
-    var zonaTts: String = "está en ${if (zonaElegida == 0) zona1 else zona2}"
+    fun zonaTts(): String { return "está en ${zonaDropdown()}" }
 
 }
 
 val frecuencias = listOf(
-    Frecuencia(0,0, 0, 0, ""),
-    Frecuencia(1,1, 121, 705, "plataforma T 2 sur"),
-    Frecuencia(2,2, 121, 855, "plataforma T 2 norte"),
-    Frecuencia(3,3, 121, 755, "plataforma T 4 S norte"),
-    Frecuencia(4,5, 118, 155, "pista 14 derecha", "pista 32 izquierda"),
-    Frecuencia(5,6, 118, 80, "pista 18 derecha", "pista 36 izquierda"),
-    Frecuencia(6,8, 121, 980, "rodadura central sur"),
-    Frecuencia(7,10, 121, 680, "plataforma T 4 S sur"),
-    Frecuencia(8,11, 122, 980, "frecuencia bomberos"),
-    Frecuencia(9,12, 118, 680, "pista 18 izquierda", "pista 36 derecha"),
-    Frecuencia(10,13, 118, 980, "pista 14 izquierda", "pista 32 derecha"),
-    Frecuencia(11,14, 123, 155, "rodadura central norte"),
-    Frecuencia(12,16, 123, 255, "plataforma T 4 norte"),
-    Frecuencia(13,17, 123, 5, "plataforma T 4 sur"),
-    Frecuencia(14,19, 121, 500, "frecuencia emergencia"),
+    Frecuencia(0,0, 0, 0, listOf("")),
+    Frecuencia(1,1, 121, 705, listOf("plataforma T 2 sur")),
+    Frecuencia(2,2, 121, 855, listOf("plataforma T 2 norte")),
+    Frecuencia(3,3, 121, 755, listOf("plataforma T 4 S norte")),
+    Frecuencia(4,5, 118, 155, listOf("pista 14 derecha", "pista 32 izquierda")),
+    Frecuencia(5,6, 118, 80, listOf("pista 18 derecha", "pista 36 izquierda")),
+    Frecuencia(6,8, 121, 980, listOf("rodadura central sur")),
+    Frecuencia(7,10, 121, 680, listOf("plataforma T 4 S sur")),
+    Frecuencia(8,11, 122, 980, listOf("frecuencia bomberos")),
+    Frecuencia(9,12, 118, 680, listOf("pista 18 izquierda", "pista 36 derecha")),
+    Frecuencia(10,13, 118, 980, listOf("pista 14 izquierda", "pista 32 derecha")),
+    Frecuencia(11,14, 123, 155, listOf("rodadura central norte")),
+    Frecuencia(12,16, 123, 255, listOf("plataforma T 4 norte")),
+    Frecuencia(13,17, 123, 5, listOf("plataforma T 4 sur")),
+    Frecuencia(14,19, 121, 500, listOf("frecuencia emergencia")),
 )
 
 class SeleccionViewModel : ViewModel() {

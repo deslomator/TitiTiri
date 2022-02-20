@@ -256,14 +256,13 @@ fun Zonas() {
     val text = when (state.zonaSeleccionada) {
         -1 -> ""
         0 -> "Zona"
-        else -> items[state.zonaSeleccionada].zonaDropdown
+        else -> items[state.zonaSeleccionada].zonaDropdown()
     }
     val color = when (state.tipo) {
         2 -> Color.Magenta.copy(alpha = .7f)
         else -> Color.White.copy(alpha = .7f)
     }
     Box(modifier = Modifier
-
         .wrapContentWidth()
         .padding(10.dp)
     ) {
@@ -276,14 +275,14 @@ fun Zonas() {
             onDismissRequest = { expanded = false }
         ) {
             scrambledFreqs().forEach {
-                Log.d("Zonas()", "zona() -> ${it.zonaElegida}, ${it.zonaDropdown}")
+                Log.d("Zonas()", "zona() -> ${it.zonaDropdown()}")
                 DropdownMenuItem(
                     onClick = {
                         state.zonaSeleccionada = it.id
                         expanded = false
                     }) {
                     Text(
-                        if (it.id == 0) "Zona" else it.zonaDropdown,
+                        if (it.id == 0) "Zona" else it.zonaDropdown(),
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center
                     )
@@ -364,7 +363,7 @@ fun BotonNueva() {
                     state.zonaSeleccionada = -1
                 }
                 else -> {
-                    locution = item.zonaTts
+                    locution = item.zonaTts()
                     state.memoriaSeleccionada = -1
                     state.frecuenciaSeleccionada = -1
                     state.zonaSeleccionada = state.pregunta
