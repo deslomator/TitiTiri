@@ -1,5 +1,6 @@
 package com.deslomator.tititiri
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -24,7 +25,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.deslomator.tititiri.TtsHelper
 import com.deslomator.tititiri.ui.theme.TitiTiriTheme
 import kotlin.random.Random
 
@@ -42,7 +42,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    Principal()
+                    OrientationChooser()
                 }
             }
         }
@@ -50,7 +50,15 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Principal() {
+fun OrientationChooser() {
+    val portrait =
+        LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT
+    if (portrait) PrincipalPortrait()
+    else PrincipalLandscape()
+}
+
+@Composable
+fun PrincipalPortrait() {
 
     Box(modifier = Modifier
         .fillMaxSize()
@@ -83,6 +91,44 @@ fun Principal() {
             Spacer(modifier = Modifier.height(20.dp))
             BotonNueva()
             Spacer(modifier = Modifier.height(20.dp))
+        }
+    }
+}
+
+@Composable
+fun PrincipalLandscape() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colorResource(id = R.color.background))
+    )
+    Image(
+        modifier = Modifier
+            .fillMaxSize()
+            .scale(scaleX = 2f, scaleY = 2.5f),
+        painter = painterResource(
+            id = R.drawable.ic_launcher_foreground
+        ),
+        contentDescription = "carrusel fondo",
+        colorFilter = ColorFilter.tint(Color.DarkGray)
+    )
+    Row {
+        Column(
+            modifier = Modifier.fillMaxSize().weight(1f),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Opciones()
+        }
+        Column(
+            modifier = Modifier.fillMaxSize().weight(1f),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            BienMal()
+            BotonComprobar()
+            Spacer(modifier = Modifier.height(20.dp))
+            BotonNueva()
         }
     }
 }
@@ -368,6 +414,6 @@ private fun SendTtsMessage(locution: String) {
 @Composable
 fun DefaultPreview() {
     TitiTiriTheme {
-        Principal()
+        OrientationChooser()
     }
 }

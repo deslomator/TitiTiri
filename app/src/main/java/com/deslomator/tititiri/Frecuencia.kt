@@ -14,7 +14,7 @@ data class Frecuencia(
     val zona1: String,
     val zona2: String = ""
 ) {
-    fun frecuenciaDecimaltoString(): String {
+    private fun frecuenciaDecimaltoString(): String {
         return when (frecuenciaDecimal) {
             in 0..9 -> "00$frecuenciaDecimal"
             in 10..99 -> "0$frecuenciaDecimal"
@@ -31,7 +31,7 @@ data class Frecuencia(
     var zonaElegida: Int = 0
         private set
     fun elegirZona() { zonaElegida = if (zona2 == "") 0 else Random.nextInt(2) }
-    fun zona(): String { return if (zonaElegida == 0) zona1 else zona2 }
+    private fun zona(): String { return if (zonaElegida == 0) zona1 else zona2 }
 
     val numeroTts: String = "memoria $numero"
     fun frecuenciaTts(): String {
