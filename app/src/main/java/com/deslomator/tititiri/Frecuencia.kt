@@ -22,12 +22,10 @@ data class Frecuencia(
         }
     }
     var frecuencia = "$frecuenciaEntero.${frecuenciaDecimaltoString()}"
-    var frecuenciaPregunta = "pase a $frecuenciaEntero.${frecuenciaDecimaltoString()}"
     var zonaDropdown = zona()
         .replace("T 4", "T4")
         .replace("4 S", "4S")
         .replace("T 2", "T2")
-    var zonaPregunta = "está en $zonaDropdown"
     var zonaElegida: Int = 0
         private set
     fun elegirZona() { zonaElegida = if (zona2 == "") 0 else Random.nextInt(2) }
@@ -68,7 +66,6 @@ class SeleccionViewModel : ViewModel() {
 
     var pregunta by mutableStateOf(-1)
     var tipo by mutableStateOf(-1)
-    var textoPregunta by mutableStateOf("pregunta")
 
     var memoriaSeleccionada by mutableStateOf(0)
     var frecuenciaSeleccionada by mutableStateOf(0)

@@ -37,7 +37,6 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             TitiTiriTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
@@ -73,14 +72,10 @@ fun PrincipalPortrait() {
         colorFilter = ColorFilter.tint(Color.DarkGray))
     Column(
         modifier = Modifier.fillMaxSize(),
-//        verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(20.dp))
-//        Pregunta()
-//        Spacer(modifier = Modifier.height(100.dp))
         Opciones()
-//        Spacer(modifier = Modifier.height(100.dp))
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Bottom,
@@ -156,11 +151,6 @@ fun MyCard(
             )
         }
     }
-}
-
-@Composable
-fun Pregunta() {
-    MyCard(text = state.textoPregunta, color = colorResource(R.color.white_alpha)) { }
 }
 
 @Composable
@@ -362,21 +352,18 @@ fun BotonNueva() {
             val item = frecuencias[state.pregunta]
             when (state.tipo) {
                 0 -> {
-                    state.textoPregunta = item.numeroTts
                     locution = item.numeroTts
                     state.memoriaSeleccionada = state.pregunta
                     state.frecuenciaSeleccionada = -1
                     state.zonaSeleccionada = -1
                 }
                 1 -> {
-                    state.textoPregunta = item.frecuenciaPregunta
                     locution = item.frecuenciaTts()
                     state.memoriaSeleccionada = -1
                     state.frecuenciaSeleccionada = state.pregunta
                     state.zonaSeleccionada = -1
                 }
                 else -> {
-                    state.textoPregunta = item.zonaPregunta
                     locution = item.zonaTts
                     state.memoriaSeleccionada = -1
                     state.frecuenciaSeleccionada = -1
