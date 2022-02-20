@@ -75,6 +75,7 @@ class SeleccionViewModel : ViewModel() {
     var zonaSeleccionada by mutableStateOf(0)
     var showGood by mutableStateOf(false)
     var showBad by mutableStateOf(false)
+    var speak by mutableStateOf(false)
 }
 
 fun scrambledFreqs(): List<Frecuencia> {

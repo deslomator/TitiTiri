@@ -17,11 +17,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.deslomator.tititiri.TtsHelper
 import com.deslomator.tititiri.ui.theme.TitiTiriTheme
 import kotlin.random.Random
 
@@ -31,6 +34,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             TitiTiriTheme {
                 // A surface container using the 'background' color from the theme
@@ -61,18 +65,25 @@ fun Principal() {
         colorFilter = ColorFilter.tint(Color.DarkGray))
     Column(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
+//        verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(20.dp))
-        Pregunta()
-        Spacer(modifier = Modifier.height(100.dp))
+//        Pregunta()
+//        Spacer(modifier = Modifier.height(100.dp))
         Opciones()
-        Spacer(modifier = Modifier.height(100.dp))
-        BienMal()
-        BotonComprobar()
-        Spacer(modifier = Modifier.height(20.dp))
-        BotonNueva()
+//        Spacer(modifier = Modifier.height(100.dp))
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Bottom,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            BienMal()
+            BotonComprobar()
+            Spacer(modifier = Modifier.height(20.dp))
+            BotonNueva()
+            Spacer(modifier = Modifier.height(20.dp))
+        }
     }
 }
 
@@ -108,7 +119,6 @@ fun Pregunta() {
 
 @Composable
 fun Opciones() {
-    Log.d("Opciones()", "creando Row")
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Memorias()
         Frecuencias()
@@ -118,7 +128,6 @@ fun Opciones() {
 
 @Composable
 fun Memorias() {
-    Log.d("Memorias()", "inicializando")
     val items = frecuencias
     var expanded by remember { mutableStateOf(false) }
     val text = when (state.memoriaSeleccionada) {
@@ -296,6 +305,9 @@ fun BotonComprobar() {
 
 @Composable
 fun BotonNueva() {
+    Log.d("BotonNueva() init", "state.speak: ${state.speak}")
+    var locution by remember { mutableStateOf("") }
+    if (state.speak) SendTtsMessage(locution)
     OutlinedButton(
         onClick = {
             for (item in frecuencias) item.elegirZona()
@@ -305,18 +317,21 @@ fun BotonNueva() {
             when (state.tipo) {
                 0 -> {
                     state.textoPregunta = item.numeroTts
+                    locution = item.numeroTts
                     state.memoriaSeleccionada = state.pregunta
                     state.frecuenciaSeleccionada = -1
                     state.zonaSeleccionada = -1
                 }
                 1 -> {
                     state.textoPregunta = item.frecuenciaPregunta
+                    locution = item.frecuenciaTts()
                     state.memoriaSeleccionada = -1
                     state.frecuenciaSeleccionada = state.pregunta
                     state.zonaSeleccionada = -1
                 }
                 else -> {
                     state.textoPregunta = item.zonaPregunta
+                    locution = item.zonaTts
                     state.memoriaSeleccionada = -1
                     state.frecuenciaSeleccionada = -1
                     state.zonaSeleccionada = state.pregunta
@@ -324,12 +339,28 @@ fun BotonNueva() {
             }
             state.showBad = false
             state.showGood = false
+            state.speak = true
+            Log.d("BotonNueva() onClick", "state.speak: ${state.speak}")
         },
         border = BorderStroke(1.dp, Color.Blue),
         shape = RoundedCornerShape(25),
         colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Blue)
     ){
         Text( text = "NUEVA PREGUNTA" )
+    }
+}
+
+@Composable
+private fun SendTtsMessage(locution: String) {
+    Log.d("sendTtsMessage()", "inicializando, locution: $locution")
+    state.speak = false
+    if (locution.length > 1) {
+        val ttsHelper = TtsHelper(LocalContext.current)
+        val msg = ttsHelper.ttsHandler.obtainMessage()
+        val bundle = msg.data
+        bundle.putString("locution", locution)
+        msg.data = bundle
+        ttsHelper.ttsHandler.sendMessage(msg)
     }
 }
 
