@@ -133,18 +133,18 @@ fun PrincipalLandscape() {
 }
 
 @Composable
-fun MyCard(
+fun MySurface(
     visible: Boolean = true,
     text: String,
     color: Color,
-    listener: () -> Unit) {
+    clickCallback: () -> Unit) {
     if (visible) {
         Surface(
             modifier = Modifier
-                .background(color)
                 .width(250.dp)
-                .clickable(onClick = listener),
-            shape = MaterialTheme.shapes.medium
+                .clickable(onClick = clickCallback),
+            shape = MaterialTheme.shapes.medium,
+            color = color
         ) {
             Text(
                 text = text,
@@ -167,6 +167,36 @@ fun Opciones() {
 }
 
 @Composable
+fun MyDropdown(
+    expanded: Boolean,
+    clickCallback: (Pair<Int, String>) -> Unit,
+    onDismiss: () -> Unit,
+    default: String,
+    scrambledFreqs: List<Pair<Int, String>>
+) {
+    DropdownMenu(
+        expanded = expanded,
+        modifier = Modifier
+            .background(Color.Green.copy(alpha = .7f))
+            .width(250.dp),
+        onDismissRequest = onDismiss
+    ) {
+        scrambledFreqs.forEach {
+            DropdownMenuItem(
+                onClick = {
+                    clickCallback(it)
+                }) {
+                Text(
+                    if (it.first == 0) default else it.second,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun Memorias() {
     val items = frecuencias
     var expanded by remember { mutableStateOf(false) }
@@ -183,29 +213,17 @@ fun Memorias() {
         .wrapContentWidth()
         .padding(10.dp)
     ) {
-        MyCard(text = text, color = color) { if (state.tipo != 0) expanded = true }
-        DropdownMenu(
+        MySurface(text = text, color = color) { if (state.tipo != 0) expanded = true }
+        MyDropdown(
             expanded = expanded,
-            modifier = Modifier
-                .background(Color.Green.copy(alpha = .7f))
-                .width(250.dp),
-            onDismissRequest = { expanded = false }
-        ) {
-            Log.d("Memorias()", "tamaño ${items.size}")
-            scrambledFreqs().forEach {
-                DropdownMenuItem(
-                    onClick = {
-                        state.memoriaSeleccionada = it.id
-                        expanded = false
-                    }) {
-                    Text(
-                        if (it.id == 0) "Memoria" else it.memoria.toString(),
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-        }
+            clickCallback = { p ->
+                state.memoriaSeleccionada = p.first
+                expanded = false
+            },
+            onDismiss = { expanded = false },
+            default = "Memoria",
+            scrambledFreqs = scrambledFreqs().map { Pair(it.id, it.memoria.toString()) }
+        )
     }
 }
 
@@ -227,28 +245,17 @@ fun Frecuencias() {
         .wrapContentWidth()
         .padding(10.dp)
     ) {
-        MyCard(text = text, color = color) { if (state.tipo != 1) expanded = true }
-        DropdownMenu(
+        MySurface(text = text, color = color) { if (state.tipo != 1) expanded = true }
+        MyDropdown(
             expanded = expanded,
-            modifier = Modifier
-                .background(Color.Green.copy(alpha = .7f))
-                .width(250.dp),
-            onDismissRequest = { expanded = false }
-        ) {
-            scrambledFreqs().forEach {
-                DropdownMenuItem(
-                    onClick = {
-                        state.frecuenciaSeleccionada = it.id
-                        expanded = false
-                    }) {
-                    Text(
-                        if (it.id == 0) "Frecuencia" else it.frecuencia,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-        }
+            clickCallback = { p ->
+                state.frecuenciaSeleccionada = p.first
+                expanded = false
+            },
+            onDismiss = { expanded = false },
+            default = "Frecuencia",
+            scrambledFreqs = scrambledFreqs().map { Pair(it.id, it.frecuencia) }
+        )
     }
 }
 
@@ -270,29 +277,17 @@ fun Zonas() {
         .wrapContentWidth()
         .padding(10.dp)
     ) {
-        MyCard(text = text, color = color) { if (state.tipo != 2) expanded = true }
-        DropdownMenu(
+        MySurface(text = text, color = color) { if (state.tipo != 2) expanded = true }
+        MyDropdown(
             expanded = expanded,
-            modifier = Modifier
-                .background(Color.Green.copy(alpha = .7f))
-                .width(250.dp),
-            onDismissRequest = { expanded = false }
-        ) {
-            scrambledFreqs().forEach {
-                Log.d("Zonas()", "zona() -> ${it.zonaDropdown()}")
-                DropdownMenuItem(
-                    onClick = {
-                        state.zonaSeleccionada = it.id
-                        expanded = false
-                    }) {
-                    Text(
-                        if (it.id == 0) "Zona" else it.zonaDropdown(),
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-        }
+            clickCallback = { p ->
+                state.zonaSeleccionada = p.first
+                expanded = false
+            },
+            onDismiss = { expanded = false },
+            default = "Zona",
+            scrambledFreqs = scrambledFreqs().map { Pair(it.id, it.zonaDropdown()) }
+        )
     }
 }
 
@@ -310,7 +305,7 @@ fun BienMal() {
         state.showGood -> "correcto"
         else -> ""
     }
-    MyCard(visible = visible, text = text, color = color) { }
+    MySurface(visible = visible, text = text, color = color) { }
     Spacer(modifier = Modifier.height(40.dp))
 }
 
