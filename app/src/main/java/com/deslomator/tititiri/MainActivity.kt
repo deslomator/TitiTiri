@@ -109,14 +109,18 @@ fun PrincipalLandscape() {
     )
     Row {
         Column(
-            modifier = Modifier.fillMaxSize().weight(1f),
+            modifier = Modifier
+                .fillMaxSize()
+                .weight(1f),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Opciones()
         }
         Column(
-            modifier = Modifier.fillMaxSize().weight(1f),
+            modifier = Modifier
+                .fillMaxSize()
+                .weight(1f),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -135,12 +139,12 @@ fun MyCard(
     color: Color,
     listener: () -> Unit) {
     if (visible) {
-        Card(
+        Surface(
             modifier = Modifier
+                .background(color)
                 .width(250.dp)
                 .clickable(onClick = listener),
-            backgroundColor = color,
-            shape = RoundedCornerShape(15)
+            shape = MaterialTheme.shapes.medium
         ) {
             Text(
                 text = text,
@@ -169,7 +173,7 @@ fun Memorias() {
     val text = when (state.memoriaSeleccionada) {
         -1 -> ""
         0 -> "Memoria"
-        else -> items[state.memoriaSeleccionada].numero.toString()
+        else -> items[state.memoriaSeleccionada].memoria.toString()
     }
     val color = when (state.tipo) {
         0 -> Color.Magenta.copy(alpha = .7f)
@@ -195,7 +199,7 @@ fun Memorias() {
                         expanded = false
                     }) {
                     Text(
-                        if (it.id == 0) "Memoria" else it.numero.toString(),
+                        if (it.id == 0) "Memoria" else it.memoria.toString(),
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center
                     )
@@ -345,7 +349,6 @@ fun BotonNueva() {
     if (state.speak) SendTtsMessage(locution)
     OutlinedButton(
         onClick = {
-            for (item in frecuencias) item.elegirZona()
             state.pregunta = Random.nextInt(frecuencias.size - 1) + 1
             state.tipo = Random.nextInt(3)
             val item = frecuencias[state.pregunta]

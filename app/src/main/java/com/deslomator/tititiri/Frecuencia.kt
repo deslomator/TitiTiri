@@ -1,6 +1,5 @@
 package com.deslomator.tititiri
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -9,7 +8,7 @@ import kotlin.random.Random
 
 data class Frecuencia(
     val id: Int,
-    val numero: Int,
+    val memoria: Int,
     private val frecuenciaEntero: Int,
     private val frecuenciaDecimal: Int,
     private val zonas: List<String>,
@@ -22,19 +21,15 @@ data class Frecuencia(
         }
     }
     var frecuencia = "$frecuenciaEntero.${frecuenciaDecimaltoString()}"
-    private var zonaElegida: Int = 0
-    fun elegirZona() {
-        zonaElegida = Random.nextInt(zonas.size)
-        Log.d("elegirZona()", "zona elegida: $zonaElegida, zonaDropdown: ${zonaDropdown()} zonaTts: ${zonaTts()}")
-    }
+
     fun zonaDropdown(): String {
-        return zonas[zonaElegida]
+        return zonas[Random.nextInt(zonas.size)]
             .replace("T 4", "T4")
             .replace("4 S", "4S")
             .replace("T 2", "T2")
     }
 
-    val numeroTts: String = "memoria $numero"
+    val numeroTts: String = "memoria $memoria"
     fun frecuenciaTts(): String {
         val cero = when (frecuenciaDecimal) {
             in 1..9 -> "cero cero"
