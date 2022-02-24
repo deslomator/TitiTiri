@@ -5,12 +5,12 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,7 +26,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.deslomator.tititiri.ui.theme.TitiTiriTheme
-import kotlin.random.Random
 
 val state = SeleccionViewModel()
 
@@ -133,18 +132,34 @@ fun PrincipalLandscape() {
 }
 
 @Composable
+fun Opciones() {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Memorias()
+        Frecuencias()
+        Zonas()
+    }
+}
+
+@Composable
 fun MySurface(
     visible: Boolean = true,
     text: String,
-    color: Color,
+    tipoPregunta: Int = -1,
+    color: Color = Color.White,
     clickCallback: () -> Unit) {
+    val animColor by animateColorAsState(
+        when (Frecuencias.selectedTipo) {
+            tipoPregunta -> Color.Magenta.copy(alpha = .7f)
+            else -> Color.White.copy(alpha = .7f)
+        })
+    val defcolor = if (tipoPregunta == -1) color else animColor
     if (visible) {
         Surface(
             modifier = Modifier
                 .width(250.dp)
                 .clickable(onClick = clickCallback),
             shape = MaterialTheme.shapes.medium,
-            color = color
+            color = defcolor
         ) {
             Text(
                 text = text,
@@ -154,15 +169,6 @@ fun MySurface(
                 textAlign = TextAlign.Center
             )
         }
-    }
-}
-
-@Composable
-fun Opciones() {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Memorias()
-        Frecuencias()
-        Zonas()
     }
 }
 
@@ -196,33 +202,74 @@ fun MyDropdown(
     }
 }
 
+
 @Composable
-fun Memorias() {
-    val items = frecuencias
+fun MyCombo(
+    selectedIndex: Int,
+    default: String,
+    tipoPregunta: Int,
+    clickCallback: (Pair<Int, String>) -> Unit,
+    scrambledFreqs: List<Pair<Int, String>>
+) {
+    val items = Frecuencias.frecuencias
     var expanded by remember { mutableStateOf(false) }
-    val text = when (state.memoriaSeleccionada) {
+    val text = when (selectedIndex) {
         -1 -> ""
-        0 -> "Memoria"
-        else -> items[state.memoriaSeleccionada].memoria.toString()
-    }
-    val color = when (state.tipo) {
-        0 -> Color.Magenta.copy(alpha = .7f)
-        else -> Color.White.copy(alpha = .7f)
+        0 -> default
+        else -> items[selectedIndex].memoria.toString()
     }
     Box(modifier = Modifier
         .wrapContentWidth()
         .padding(10.dp)
     ) {
-        MySurface(text = text, color = color) { if (state.tipo != 0) expanded = true }
+        MySurface(text = text, tipoPregunta = tipoPregunta) { if (Frecuencias.selectedTipo != tipoPregunta) expanded = true }
+        MyDropdown(
+            expanded = expanded,
+            clickCallback = clickCallback,
+            onDismiss = { expanded = false },
+            default = default,
+            scrambledFreqs = scrambledFreqs
+        )
+    }
+}
+
+@Composable
+fun Memorias() {
+    MyCombo(
+        selectedIndex = Frecuencias.memoriaSeleccionada,
+        default = "Memoria",
+        tipoPregunta = 0,
+        clickCallback = { p ->
+            Frecuencias.memoriaSeleccionada = p.first
+//            expanded = false
+        },
+        scrambledFreqs = Frecuencias.scrambledFreqs().map { Pair(it.id, it.memoria.toString()) }
+    )
+}
+
+@Composable
+fun Memorias2() {
+    val items = Frecuencias.frecuencias
+    var expanded by remember { mutableStateOf(false) }
+    val text = when (Frecuencias.memoriaSeleccionada) {
+        -1 -> ""
+        0 -> "Memoria"
+        else -> items[Frecuencias.memoriaSeleccionada].memoria.toString()
+    }
+    Box(modifier = Modifier
+        .wrapContentWidth()
+        .padding(10.dp)
+    ) {
+        MySurface(text = text, tipoPregunta = 0) { if (Frecuencias.selectedTipo != 0) expanded = true }
         MyDropdown(
             expanded = expanded,
             clickCallback = { p ->
-                state.memoriaSeleccionada = p.first
+                Frecuencias.memoriaSeleccionada = p.first
                 expanded = false
             },
             onDismiss = { expanded = false },
             default = "Memoria",
-            scrambledFreqs = scrambledFreqs().map { Pair(it.id, it.memoria.toString()) }
+            scrambledFreqs = Frecuencias.scrambledFreqs().map { Pair(it.id, it.memoria.toString()) }
         )
     }
 }
@@ -230,31 +277,27 @@ fun Memorias() {
 @Composable
 fun Frecuencias() {
     Log.d("Frecuencias()", "inicializando")
-    val items = frecuencias
+    val items = Frecuencias.frecuencias
     var expanded by remember { mutableStateOf(false) }
-    val text = when (state.frecuenciaSeleccionada) {
+    val text = when (Frecuencias.frecuenciaSeleccionada) {
         -1 -> ""
         0 -> "Frecuencia"
-        else -> items[state.frecuenciaSeleccionada].frecuencia
-    }
-    val color = when (state.tipo) {
-        1 -> Color.Magenta.copy(alpha = .7f)
-        else -> Color.White.copy(alpha = .7f)
+        else -> items[Frecuencias.frecuenciaSeleccionada].frecuencia
     }
     Box(modifier = Modifier
         .wrapContentWidth()
         .padding(10.dp)
     ) {
-        MySurface(text = text, color = color) { if (state.tipo != 1) expanded = true }
+        MySurface(text = text, tipoPregunta = 1) { if (Frecuencias.selectedTipo != 1) expanded = true }
         MyDropdown(
             expanded = expanded,
             clickCallback = { p ->
-                state.frecuenciaSeleccionada = p.first
+                Frecuencias.frecuenciaSeleccionada = p.first
                 expanded = false
             },
             onDismiss = { expanded = false },
             default = "Frecuencia",
-            scrambledFreqs = scrambledFreqs().map { Pair(it.id, it.frecuencia) }
+            scrambledFreqs = Frecuencias.scrambledFreqs().map { Pair(it.id, it.frecuencia) }
         )
     }
 }
@@ -262,31 +305,27 @@ fun Frecuencias() {
 @Composable
 fun Zonas() {
     Log.d("Zonas()", "inicializando")
-    val items = frecuencias
+    val items = Frecuencias.frecuencias
     var expanded by remember { mutableStateOf(false) }
-    val text = when (state.zonaSeleccionada) {
+    val text = when (Frecuencias.zonaSeleccionada) {
         -1 -> ""
         0 -> "Zona"
-        else -> items[state.zonaSeleccionada].zonaDropdown()
-    }
-    val color = when (state.tipo) {
-        2 -> Color.Magenta.copy(alpha = .7f)
-        else -> Color.White.copy(alpha = .7f)
+        else -> items[Frecuencias.zonaSeleccionada].zonaDropdown()
     }
     Box(modifier = Modifier
         .wrapContentWidth()
         .padding(10.dp)
     ) {
-        MySurface(text = text, color = color) { if (state.tipo != 2) expanded = true }
+        MySurface(text = text, tipoPregunta = 2) { if (Frecuencias.selectedTipo != 2) expanded = true }
         MyDropdown(
             expanded = expanded,
             clickCallback = { p ->
-                state.zonaSeleccionada = p.first
+                Frecuencias.zonaSeleccionada = p.first
                 expanded = false
             },
             onDismiss = { expanded = false },
             default = "Zona",
-            scrambledFreqs = scrambledFreqs().map { Pair(it.id, it.zonaDropdown()) }
+            scrambledFreqs = Frecuencias.scrambledFreqs().map { Pair(it.id, it.zonaDropdown()) }
         )
     }
 }
@@ -295,17 +334,18 @@ fun Zonas() {
 fun BienMal() {
     Spacer(modifier = Modifier.height(20.dp))
     val visible = state.showGood || state.showBad
-    val color = when {
-        state.showBad -> Color.Red.copy(alpha = .7f)
-        state.showGood -> Color.Green.copy(alpha = .7f)
-        else -> Color.White.copy(alpha = 0f)
-    }
+    val color by animateColorAsState(
+        when {
+            state.showBad -> Color.Red.copy(alpha = .7f)
+            state.showGood -> Color.Green.copy(alpha = .7f)
+            else -> Color.White.copy(alpha = 0f)
+        })
     val text = when {
         state.showBad -> "incorrecto"
         state.showGood -> "correcto"
         else -> ""
     }
-    MySurface(visible = visible, text = text, color = color) { }
+    MySurface(visible = visible, text = text, color = color) {}
     Spacer(modifier = Modifier.height(40.dp))
 }
 
@@ -313,27 +353,26 @@ fun BienMal() {
 fun BotonComprobar() {
     OutlinedButton(
         onClick = {
-            val goodIndex = when (state.tipo) {
-                0 -> state.memoriaSeleccionada
-                1 -> state.frecuenciaSeleccionada
-                else -> state.zonaSeleccionada
+            val goodIndex = when (Frecuencias.selectedTipo) {
+                0 -> Frecuencias.memoriaSeleccionada
+                1 -> Frecuencias.frecuenciaSeleccionada
+                else -> Frecuencias.zonaSeleccionada
             }
-            if (state.memoriaSeleccionada == goodIndex
-                && state.frecuenciaSeleccionada == goodIndex
-                && state.zonaSeleccionada == goodIndex) {
+            if (Frecuencias.memoriaSeleccionada == goodIndex
+                && Frecuencias.frecuenciaSeleccionada == goodIndex
+                && Frecuencias.zonaSeleccionada == goodIndex) {
                 state.showBad = false
                 state.showGood = true
             } else {
                 state.showBad = true
                 state.showGood = false
             }
-            Log.d("comprobar", "tipo: ${state.tipo}, good: $goodIndex, memoria: ${state.memoriaSeleccionada}, frecuencia: ${state.frecuenciaSeleccionada}, zona: ${state.zonaSeleccionada}")
         },
-        border = BorderStroke(1.dp, Color.Red),
-        shape = RoundedCornerShape(25),
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red)
+        border = BorderStroke(1.dp, Color.Magenta),
+        shape = MaterialTheme.shapes.medium,
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Magenta)
     ){
-        Text( text = "COMPROBAR" )
+        Text(text = "COMPROBAR")
     }
 }
 
@@ -344,37 +383,20 @@ fun BotonNueva() {
     if (state.speak) SendTtsMessage(locution)
     OutlinedButton(
         onClick = {
-            state.pregunta = Random.nextInt(frecuencias.size - 1) + 1
-            state.tipo = Random.nextInt(3)
-            val item = frecuencias[state.pregunta]
-            when (state.tipo) {
-                0 -> {
-                    locution = item.numeroTts
-                    state.memoriaSeleccionada = state.pregunta
-                    state.frecuenciaSeleccionada = -1
-                    state.zonaSeleccionada = -1
-                }
-                1 -> {
-                    locution = item.frecuenciaTts()
-                    state.memoriaSeleccionada = -1
-                    state.frecuenciaSeleccionada = state.pregunta
-                    state.zonaSeleccionada = -1
-                }
-                else -> {
-                    locution = item.zonaTts()
-                    state.memoriaSeleccionada = -1
-                    state.frecuenciaSeleccionada = -1
-                    state.zonaSeleccionada = state.pregunta
-                }
+            Frecuencias.setNewPregunta()
+            locution = when (Frecuencias.selectedTipo) {
+                0 -> Frecuencias.selectedItem().numeroTts
+                1 -> Frecuencias.selectedItem().frecuenciaTts()
+                else -> Frecuencias.selectedItem().zonaTts()
             }
             state.showBad = false
             state.showGood = false
             state.speak = true
             Log.d("BotonNueva() onClick", "state.speak: ${state.speak}")
         },
-        border = BorderStroke(1.dp, Color.Blue),
-        shape = RoundedCornerShape(25),
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Blue)
+        border = BorderStroke(1.dp, colorResource(id = R.color.teal_700)),
+        shape = MaterialTheme.shapes.medium,
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = colorResource(id = R.color.teal_700))
     ){
         Text( text = "NUEVA PREGUNTA" )
     }
