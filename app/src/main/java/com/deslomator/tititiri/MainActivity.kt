@@ -175,8 +175,8 @@ fun MySurface(
 @Composable
 fun MyDropdown(
     expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
     clickCallback: (Pair<Int, String>) -> Unit,
-    onDismiss: () -> Unit,
     default: String,
     scrambledFreqs: List<Pair<Int, String>>
 ) {
@@ -185,12 +185,13 @@ fun MyDropdown(
         modifier = Modifier
             .background(Color.Green.copy(alpha = .7f))
             .width(250.dp),
-        onDismissRequest = onDismiss
+        onDismissRequest = { onExpandedChange(false) }
     ) {
         scrambledFreqs.forEach {
             DropdownMenuItem(
                 onClick = {
                     clickCallback(it)
+                    onExpandedChange(false)
                 }) {
                 Text(
                     if (it.first == 0) default else it.second,
@@ -205,28 +206,29 @@ fun MyDropdown(
 
 @Composable
 fun MyCombo(
+    items: List<Pair<Int, String>>,
     selectedIndex: Int,
     default: String,
     tipoPregunta: Int,
     clickCallback: (Pair<Int, String>) -> Unit,
     scrambledFreqs: List<Pair<Int, String>>
 ) {
-    val items = Frecuencias.frecuencias
-    var expanded by remember { mutableStateOf(false) }
+//    val items = Frecuencias.frecuencias
     val text = when (selectedIndex) {
         -1 -> ""
         0 -> default
-        else -> items[selectedIndex].memoria.toString()
+        else -> items[selectedIndex].second
     }
     Box(modifier = Modifier
         .wrapContentWidth()
         .padding(10.dp)
     ) {
+        var expanded by remember { mutableStateOf(false) }
         MySurface(text = text, tipoPregunta = tipoPregunta) { if (Frecuencias.selectedTipo != tipoPregunta) expanded = true }
         MyDropdown(
             expanded = expanded,
+            onExpandedChange = { expanded = it },
             clickCallback = clickCallback,
-            onDismiss = { expanded = false },
             default = default,
             scrambledFreqs = scrambledFreqs
         )
@@ -236,98 +238,37 @@ fun MyCombo(
 @Composable
 fun Memorias() {
     MyCombo(
+        items = Frecuencias.frecuencias.map { Pair(it.id, it.memoria.toString()) },
         selectedIndex = Frecuencias.memoriaSeleccionada,
         default = "Memoria",
         tipoPregunta = 0,
-        clickCallback = { p ->
-            Frecuencias.memoriaSeleccionada = p.first
-//            expanded = false
-        },
+        clickCallback = { p -> Frecuencias.memoriaSeleccionada = p.first },
         scrambledFreqs = Frecuencias.scrambledFreqs().map { Pair(it.id, it.memoria.toString()) }
     )
 }
 
 @Composable
-fun Memorias2() {
-    val items = Frecuencias.frecuencias
-    var expanded by remember { mutableStateOf(false) }
-    val text = when (Frecuencias.memoriaSeleccionada) {
-        -1 -> ""
-        0 -> "Memoria"
-        else -> items[Frecuencias.memoriaSeleccionada].memoria.toString()
-    }
-    Box(modifier = Modifier
-        .wrapContentWidth()
-        .padding(10.dp)
-    ) {
-        MySurface(text = text, tipoPregunta = 0) { if (Frecuencias.selectedTipo != 0) expanded = true }
-        MyDropdown(
-            expanded = expanded,
-            clickCallback = { p ->
-                Frecuencias.memoriaSeleccionada = p.first
-                expanded = false
-            },
-            onDismiss = { expanded = false },
-            default = "Memoria",
-            scrambledFreqs = Frecuencias.scrambledFreqs().map { Pair(it.id, it.memoria.toString()) }
-        )
-    }
-}
-
-@Composable
 fun Frecuencias() {
-    Log.d("Frecuencias()", "inicializando")
-    val items = Frecuencias.frecuencias
-    var expanded by remember { mutableStateOf(false) }
-    val text = when (Frecuencias.frecuenciaSeleccionada) {
-        -1 -> ""
-        0 -> "Frecuencia"
-        else -> items[Frecuencias.frecuenciaSeleccionada].frecuencia
-    }
-    Box(modifier = Modifier
-        .wrapContentWidth()
-        .padding(10.dp)
-    ) {
-        MySurface(text = text, tipoPregunta = 1) { if (Frecuencias.selectedTipo != 1) expanded = true }
-        MyDropdown(
-            expanded = expanded,
-            clickCallback = { p ->
-                Frecuencias.frecuenciaSeleccionada = p.first
-                expanded = false
-            },
-            onDismiss = { expanded = false },
-            default = "Frecuencia",
-            scrambledFreqs = Frecuencias.scrambledFreqs().map { Pair(it.id, it.frecuencia) }
-        )
-    }
+    MyCombo(
+        items = Frecuencias.frecuencias.map { Pair(it.id, it.frecuencia) },
+        selectedIndex = Frecuencias.frecuenciaSeleccionada,
+        default = "Frecuencia",
+        tipoPregunta = 1,
+        clickCallback = { p -> Frecuencias.frecuenciaSeleccionada = p.first },
+        scrambledFreqs = Frecuencias.scrambledFreqs().map { Pair(it.id, it.frecuencia) }
+    )
 }
 
 @Composable
 fun Zonas() {
-    Log.d("Zonas()", "inicializando")
-    val items = Frecuencias.frecuencias
-    var expanded by remember { mutableStateOf(false) }
-    val text = when (Frecuencias.zonaSeleccionada) {
-        -1 -> ""
-        0 -> "Zona"
-        else -> items[Frecuencias.zonaSeleccionada].zonaDropdown()
-    }
-    Box(modifier = Modifier
-        .wrapContentWidth()
-        .padding(10.dp)
-    ) {
-        MySurface(text = text, tipoPregunta = 2) { if (Frecuencias.selectedTipo != 2) expanded = true }
-        MyDropdown(
-            expanded = expanded,
-            clickCallback = { p ->
-                Frecuencias.zonaSeleccionada = p.first
-                expanded = false
-            },
-            onDismiss = { expanded = false },
-            default = "Zona",
-            scrambledFreqs = Frecuencias.scrambledFreqs().map { Pair(it.id, it.zonaDropdown()) }
-        )
-    }
+    MyCombo(
+        items = Frecuencias.frecuencias.map { Pair(it.id, it.zonaDropdown()) },
+        selectedIndex = Frecuencias.zonaSeleccionada,
+        default = "Zona",
+        tipoPregunta = 2,
+        clickCallback = { p -> Frecuencias.zonaSeleccionada = p.first },
+        scrambledFreqs = Frecuencias.scrambledFreqs().map { Pair(it.id, it.zonaDropdown()) }
+    )
 }
 
 @Composable
