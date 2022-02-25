@@ -173,38 +173,6 @@ fun MySurface(
 }
 
 @Composable
-fun MyDropdown(
-    expanded: Boolean,
-    onExpandedChange: (Boolean) -> Unit,
-    clickCallback: (Pair<Int, String>) -> Unit,
-    default: String,
-    scrambledFreqs: List<Pair<Int, String>>
-) {
-    DropdownMenu(
-        expanded = expanded,
-        modifier = Modifier
-            .background(Color.Green.copy(alpha = .7f))
-            .width(250.dp),
-        onDismissRequest = { onExpandedChange(false) }
-    ) {
-        scrambledFreqs.forEach {
-            DropdownMenuItem(
-                onClick = {
-                    clickCallback(it)
-                    onExpandedChange(false)
-                }) {
-                Text(
-                    if (it.first == 0) default else it.second,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-    }
-}
-
-
-@Composable
 fun MyCombo(
     items: List<Pair<Int, String>>,
     selectedIndex: Int,
@@ -213,7 +181,6 @@ fun MyCombo(
     clickCallback: (Pair<Int, String>) -> Unit,
     scrambledFreqs: List<Pair<Int, String>>
 ) {
-//    val items = Frecuencias.frecuencias
     val text = when (selectedIndex) {
         -1 -> ""
         0 -> default
@@ -225,13 +192,27 @@ fun MyCombo(
     ) {
         var expanded by remember { mutableStateOf(false) }
         MySurface(text = text, tipoPregunta = tipoPregunta) { if (Frecuencias.selectedTipo != tipoPregunta) expanded = true }
-        MyDropdown(
+        DropdownMenu(
             expanded = expanded,
-            onExpandedChange = { expanded = it },
-            clickCallback = clickCallback,
-            default = default,
-            scrambledFreqs = scrambledFreqs
-        )
+            modifier = Modifier
+                .background(Color.Green.copy(alpha = .7f))
+                .width(250.dp),
+            onDismissRequest = { expanded = false }
+        ) {
+            scrambledFreqs.forEach {
+                DropdownMenuItem(
+                    onClick = {
+                        clickCallback(it)
+                        expanded = false
+                    }) {
+                    Text(
+                        if (it.first == 0) default else it.second,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        }
     }
 }
 
