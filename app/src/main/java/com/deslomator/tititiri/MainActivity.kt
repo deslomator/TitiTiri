@@ -24,6 +24,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.deslomator.tititiri.data.Src
+import com.deslomator.tititiri.model.FrecuenciasModel
+import com.deslomator.tititiri.model.Type
 import com.deslomator.tititiri.ui.theme.TitiTiriTheme
 
 val model = FrecuenciasModel()
