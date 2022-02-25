@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.deslomator.tititiri.ui.theme.TitiTiriTheme
@@ -40,7 +41,9 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    OrientationChooser()
+                    var isLandscape by remember { mutableStateOf(false) }
+                    isLandscape =   LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+                    OrientationChooser(isLandscape)
                 }
             }
         }
@@ -48,27 +51,14 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun OrientationChooser() {
-    val portrait =
-        LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT
-    if (portrait) PrincipalPortrait()
-    else PrincipalLandscape()
+fun OrientationChooser(isLandscape: Boolean = false) {
+    if (isLandscape) PrincipalLandscape()
+    else PrincipalPortrait()
 }
 
 @Composable
 fun PrincipalPortrait() {
-
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .background(colorResource(id = R.color.background)))
-    Image(
-        modifier = Modifier
-            .fillMaxSize()
-            .scale(scaleX = 2f, scaleY = 2.5f),
-        painter = painterResource(
-            id = R.drawable.ic_launcher_foreground),
-        contentDescription = "carrusel fondo",
-        colorFilter = ColorFilter.tint(Color.DarkGray))
+    Unicornio()
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -91,21 +81,7 @@ fun PrincipalPortrait() {
 
 @Composable
 fun PrincipalLandscape() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colorResource(id = R.color.background))
-    )
-    Image(
-        modifier = Modifier
-            .fillMaxSize()
-            .scale(scaleX = 2f, scaleY = 2.5f),
-        painter = painterResource(
-            id = R.drawable.ic_launcher_foreground
-        ),
-        contentDescription = "carrusel fondo",
-        colorFilter = ColorFilter.tint(Color.DarkGray)
-    )
+    Unicornio(landscape = true)
     Row {
         Column(
             modifier = Modifier
@@ -141,16 +117,34 @@ fun Opciones() {
 }
 
 @Composable
+fun Unicornio(landscape: Boolean = false) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    )
+    Image(
+        modifier = Modifier
+            .fillMaxSize()
+            .scale(scaleX = if (landscape) 2.5f else 2f, scaleY = if (landscape) 2f else 2.5f),
+        painter = painterResource(
+            id = R.drawable.ic_launcher_foreground
+        ),
+        contentDescription = "carrusel fondo",
+        colorFilter = ColorFilter.tint(MaterialTheme.colors.secondary)
+    )
+}
+
+@Composable
 fun MySurface(
     visible: Boolean = true,
     text: String,
     tipoPregunta: Int = -1,
-    color: Color = Color.White,
+    color: Color = MaterialTheme.colors.background,
     clickCallback: () -> Unit) {
     val animColor by animateColorAsState(
         when (Frecuencias.selectedTipo) {
-            tipoPregunta -> Color.Magenta.copy(alpha = .7f)
-            else -> Color.White.copy(alpha = .7f)
+            tipoPregunta -> MaterialTheme.colors.primaryVariant
+            else -> MaterialTheme.colors.primary
         })
     val defcolor = if (tipoPregunta == -1) color else animColor
     if (visible) {
@@ -166,7 +160,7 @@ fun MySurface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(15.dp),
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
         }
     }
@@ -195,7 +189,7 @@ fun MyCombo(
         DropdownMenu(
             expanded = expanded,
             modifier = Modifier
-                .background(Color.Green.copy(alpha = .7f))
+                .background(MaterialTheme.colors.primary)
                 .width(250.dp),
             onDismissRequest = { expanded = false }
         ) {
@@ -258,9 +252,9 @@ fun BienMal() {
     val visible = state.showGood || state.showBad
     val color by animateColorAsState(
         when {
-            state.showBad -> Color.Red.copy(alpha = .7f)
-            state.showGood -> Color.Green.copy(alpha = .7f)
-            else -> Color.White.copy(alpha = 0f)
+            state.showBad -> MaterialTheme.colors.error
+            state.showGood -> MaterialTheme.colors.primaryVariant
+            else -> Color.Transparent
         })
     val text = when {
         state.showBad -> "incorrecto"
@@ -290,9 +284,9 @@ fun BotonComprobar() {
                 state.showGood = false
             }
         },
-        border = BorderStroke(1.dp, Color.Magenta),
+        border = BorderStroke(1.dp, MaterialTheme.colors.error),
         shape = MaterialTheme.shapes.medium,
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Magenta)
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colors.error)
     ){
         Text(text = "COMPROBAR")
     }
@@ -316,9 +310,9 @@ fun BotonNueva() {
             state.speak = true
             Log.d("BotonNueva() onClick", "state.speak: ${state.speak}")
         },
-        border = BorderStroke(1.dp, colorResource(id = R.color.teal_700)),
+        border = BorderStroke(1.dp, MaterialTheme.colors.primaryVariant),
         shape = MaterialTheme.shapes.medium,
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = colorResource(id = R.color.teal_700))
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colors.primaryVariant)
     ){
         Text( text = "NUEVA PREGUNTA" )
     }
@@ -333,10 +327,20 @@ private fun SendTtsMessage(locution: String) {
     }
 }
 
-@Preview(showSystemUi = true)
+@Preview(device = Devices.PIXEL_4, showSystemUi = true, showBackground = true)
 @Composable
-fun DefaultPreview() {
+fun DefaultPreview(
+) {
     TitiTiriTheme {
         OrientationChooser()
+    }
+}
+
+@Preview(device = Devices.PIXEL_4, widthDp = 720, heightDp = 360, showBackground = true)
+@Composable
+fun DefaultPreviewLandscape(
+) {
+    TitiTiriTheme(darkTheme = true) {
+        OrientationChooser(true)
     }
 }
