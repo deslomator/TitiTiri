@@ -2,7 +2,6 @@ package com.deslomator.tititiri
 
 import android.content.res.Configuration
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.animateColorAsState
@@ -137,7 +136,7 @@ fun Unicornio(landscape: Boolean = false) {
 fun MySurface(
     visible: Boolean = true,
     text: String,
-    tipoPregunta: Int = -1,
+    tipoPregunta: Type?,
     color: Color = MaterialTheme.colors.background,
     clickCallback: () -> Unit) {
     val animColor by animateColorAsState(
@@ -145,7 +144,7 @@ fun MySurface(
             tipoPregunta -> MaterialTheme.colors.primaryVariant
             else -> MaterialTheme.colors.primary
         })
-    val defcolor = if (tipoPregunta == -1) color else animColor
+    val defcolor = if (tipoPregunta == null) color else animColor
     if (visible) {
         Surface(
             modifier = Modifier
@@ -170,7 +169,7 @@ fun MyCombo(
     items: List<Pair<Int, String>>,
     selectedIndex: Int,
     default: String,
-    tipoPregunta: Int,
+    tipoPregunta: Type,
     clickCallback: (Pair<Int, String>) -> Unit,
     scrambledFreqs: List<Pair<Int, String>>
 ) {
@@ -184,7 +183,9 @@ fun MyCombo(
         .padding(10.dp)
     ) {
         var expanded by remember { mutableStateOf(false) }
-        MySurface(text = text, tipoPregunta = tipoPregunta) { if (model.selectedTipo != tipoPregunta) expanded = true }
+        MySurface(text = text, tipoPregunta = tipoPregunta) {
+            if (model.selectedTipo != tipoPregunta) expanded = true
+        }
         DropdownMenu(
             expanded = expanded,
             modifier = Modifier
@@ -201,7 +202,8 @@ fun MyCombo(
                     Text(
                         if (it.first == 0) default else it.second,
                         modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colors.onPrimary
                     )
                 }
             }
@@ -212,10 +214,10 @@ fun MyCombo(
 @Composable
 fun Memorias() {
     MyCombo(
-        items = src.frecuencias.map { Pair(it.id, it.memoria.toString()) },
+        items = Src.frecuencias.map { Pair(it.id, it.memoria.toString()) },
         selectedIndex = model.memoriaSeleccionada,
         default = "Memoria",
-        tipoPregunta = 0,
+        tipoPregunta = Type.MEMORY,
         clickCallback = { p -> model.onMemoriaChanged(p.first) },
         scrambledFreqs = model.scrambledFreqs().map { Pair(it.id, it.memoria.toString()) }
     )
@@ -224,10 +226,10 @@ fun Memorias() {
 @Composable
 fun Frecuencias() {
     MyCombo(
-        items = src.frecuencias.map { Pair(it.id, it.frecuencia) },
+        items = Src.frecuencias.map { Pair(it.id, it.frecuencia) },
         selectedIndex = model.frecuenciaSeleccionada,
         default = "Frecuencia",
-        tipoPregunta = 1,
+        tipoPregunta = Type.FREQUENCY,
         clickCallback = { p -> model.onFrecuenciaChanged(p.first) },
         scrambledFreqs = model.scrambledFreqs().map { Pair(it.id, it.frecuencia) }
     )
@@ -236,10 +238,10 @@ fun Frecuencias() {
 @Composable
 fun Zonas() {
     MyCombo(
-        items = src.frecuencias.map { Pair(it.id, it.zonaDropdown()) },
+        items = Src.frecuencias.map { Pair(it.id, it.zonaDropdown()) },
         selectedIndex = model.zonaSeleccionada,
         default = "Zona",
-        tipoPregunta = 2,
+        tipoPregunta = Type.ZONE,
         clickCallback = { p -> model.onZonaChanged(p.first) },
         scrambledFreqs = model.scrambledFreqs().map { Pair(it.id, it.zonaDropdown()) }
     )
@@ -260,7 +262,7 @@ fun BienMal() {
         model.showGood -> "correcto"
         else -> ""
     }
-    MySurface(visible = visible, text = text, color = color) {}
+    MySurface(visible = visible, text = text, tipoPregunta = null, color = color) {}
     Spacer(modifier = Modifier.height(40.dp))
 }
 
