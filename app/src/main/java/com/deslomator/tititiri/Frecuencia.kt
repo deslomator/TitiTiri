@@ -49,51 +49,76 @@ data class Frecuencia(
 
 }
 
-
-object Frecuencias : ViewModel() {
+class FrecuenciasModel : ViewModel() {
 
     private var selectedIndex = 0
-    private fun selectIndex() { selectedIndex = Random.nextInt(frecuencias.size - 1) + 1 }
-    var selectedTipo by mutableStateOf(0)
-    private fun selectTipo() { selectedTipo = Random.nextInt(3) }
-    private fun selectZonas() { for (item in frecuencias) item.elegirZona() }
-    fun selectedItem(): Frecuencia { return frecuencias[selectedIndex] }
+    private fun selectIndex() {
+        selectedIndex = Random.nextInt(src.frecuencias.size - 1) + 1
+    }
+//    private var locution by mutableStateOf("")
 
+    var selectedTipo by mutableStateOf(0)
+        private set
     var memoriaSeleccionada by mutableStateOf(0)
+        private set
     var frecuenciaSeleccionada by mutableStateOf(0)
+        private set
     var zonaSeleccionada by mutableStateOf(0)
+        private set
+    var showGood by mutableStateOf(false)
+        private set
+    var showBad by mutableStateOf(false)
+        private set
+//    var speak by mutableStateOf(false)
+//        private set
+
+    fun onMemoriaChanged(newValue: Int) {
+        memoriaSeleccionada = newValue
+    }
+
+    fun onFrecuenciaChanged(newValue: Int) {
+        frecuenciaSeleccionada = newValue
+    }
+
+    fun onZonaChanged(newValue: Int) {
+        zonaSeleccionada = newValue
+    }
+
+    fun selectZonas() {
+        for (item in src.frecuencias) item.elegirZona()
+    }
+
+    private fun selectedItem(): Frecuencia {
+        return src.frecuencias[selectedIndex]
+    }
+
+    private fun selectTipo() {
+        selectedTipo = Random.nextInt(3)
+    }
 
     fun scrambledFreqs(): List<Frecuencia> {
         val list: MutableList<Frecuencia> = mutableListOf()
-        list.add(frecuencias[0])
-        while (list.size < frecuencias.size) {
-            val index = Random.nextInt(frecuencias.size - 1) + 1
-            val item = frecuencias[index]
+        list.add(src.frecuencias[0])
+        while (list.size < src.frecuencias.size) {
+            val index = Random.nextInt(src.frecuencias.size - 1) + 1
+            val item = src.frecuencias[index]
             if (!list.contains(item)) list.add(item)
         }
         return list
     }
 
-    fun setNewPregunta() {
+    fun setNewPregunta(context: Context) {
         selectZonas()
         selectIndex()
         selectTipo()
+
+        memoriaSeleccionada = selectedIndex
+        frecuenciaSeleccionada = -1
+        zonaSeleccionada = -1
         when (selectedTipo) {
-            0 -> {
-                memoriaSeleccionada = selectedIndex
-                frecuenciaSeleccionada = -1
-                zonaSeleccionada = -1
-            }
-            1 -> {
-                memoriaSeleccionada = -1
-                frecuenciaSeleccionada = selectedIndex
-                zonaSeleccionada = -1
-            }
-            else -> {
-                memoriaSeleccionada = -1
-                frecuenciaSeleccionada = -1
-                zonaSeleccionada = selectedIndex
-            }
+            0 -> memoriaSeleccionada = selectedIndex
+            1 -> frecuenciaSeleccionada = selectedIndex
+            else -> zonaSeleccionada = selectedIndex
         }
         showBad = false
         showGood = false
@@ -152,9 +177,3 @@ object src {
     )
 }
 
-class SeleccionViewModel : ViewModel() {
-
-    var showGood by mutableStateOf(false)
-    var showBad by mutableStateOf(false)
-    var speak by mutableStateOf(false)
-}

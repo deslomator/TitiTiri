@@ -20,7 +20,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
@@ -28,7 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.deslomator.tititiri.ui.theme.TitiTiriTheme
 
-val state = SeleccionViewModel()
+val model = FrecuenciasModel()
 
 class MainActivity : ComponentActivity() {
 
@@ -142,7 +141,7 @@ fun MySurface(
     color: Color = MaterialTheme.colors.background,
     clickCallback: () -> Unit) {
     val animColor by animateColorAsState(
-        when (Frecuencias.selectedTipo) {
+        when (model.selectedTipo) {
             tipoPregunta -> MaterialTheme.colors.primaryVariant
             else -> MaterialTheme.colors.primary
         })
@@ -185,7 +184,7 @@ fun MyCombo(
         .padding(10.dp)
     ) {
         var expanded by remember { mutableStateOf(false) }
-        MySurface(text = text, tipoPregunta = tipoPregunta) { if (Frecuencias.selectedTipo != tipoPregunta) expanded = true }
+        MySurface(text = text, tipoPregunta = tipoPregunta) { if (model.selectedTipo != tipoPregunta) expanded = true }
         DropdownMenu(
             expanded = expanded,
             modifier = Modifier
@@ -213,52 +212,52 @@ fun MyCombo(
 @Composable
 fun Memorias() {
     MyCombo(
-        items = Frecuencias.frecuencias.map { Pair(it.id, it.memoria.toString()) },
-        selectedIndex = Frecuencias.memoriaSeleccionada,
+        items = src.frecuencias.map { Pair(it.id, it.memoria.toString()) },
+        selectedIndex = model.memoriaSeleccionada,
         default = "Memoria",
         tipoPregunta = 0,
-        clickCallback = { p -> Frecuencias.memoriaSeleccionada = p.first },
-        scrambledFreqs = Frecuencias.scrambledFreqs().map { Pair(it.id, it.memoria.toString()) }
+        clickCallback = { p -> model.onMemoriaChanged(p.first) },
+        scrambledFreqs = model.scrambledFreqs().map { Pair(it.id, it.memoria.toString()) }
     )
 }
 
 @Composable
 fun Frecuencias() {
     MyCombo(
-        items = Frecuencias.frecuencias.map { Pair(it.id, it.frecuencia) },
-        selectedIndex = Frecuencias.frecuenciaSeleccionada,
+        items = src.frecuencias.map { Pair(it.id, it.frecuencia) },
+        selectedIndex = model.frecuenciaSeleccionada,
         default = "Frecuencia",
         tipoPregunta = 1,
-        clickCallback = { p -> Frecuencias.frecuenciaSeleccionada = p.first },
-        scrambledFreqs = Frecuencias.scrambledFreqs().map { Pair(it.id, it.frecuencia) }
+        clickCallback = { p -> model.onFrecuenciaChanged(p.first) },
+        scrambledFreqs = model.scrambledFreqs().map { Pair(it.id, it.frecuencia) }
     )
 }
 
 @Composable
 fun Zonas() {
     MyCombo(
-        items = Frecuencias.frecuencias.map { Pair(it.id, it.zonaDropdown()) },
-        selectedIndex = Frecuencias.zonaSeleccionada,
+        items = src.frecuencias.map { Pair(it.id, it.zonaDropdown()) },
+        selectedIndex = model.zonaSeleccionada,
         default = "Zona",
         tipoPregunta = 2,
-        clickCallback = { p -> Frecuencias.zonaSeleccionada = p.first },
-        scrambledFreqs = Frecuencias.scrambledFreqs().map { Pair(it.id, it.zonaDropdown()) }
+        clickCallback = { p -> model.onZonaChanged(p.first) },
+        scrambledFreqs = model.scrambledFreqs().map { Pair(it.id, it.zonaDropdown()) }
     )
 }
 
 @Composable
 fun BienMal() {
     Spacer(modifier = Modifier.height(20.dp))
-    val visible = state.showGood || state.showBad
+    val visible = model.showGood || model.showBad
     val color by animateColorAsState(
         when {
-            state.showBad -> MaterialTheme.colors.error
-            state.showGood -> MaterialTheme.colors.primaryVariant
+            model.showBad -> MaterialTheme.colors.error
+            model.showGood -> MaterialTheme.colors.primaryVariant
             else -> Color.Transparent
         })
     val text = when {
-        state.showBad -> "incorrecto"
-        state.showGood -> "correcto"
+        model.showBad -> "incorrecto"
+        model.showGood -> "correcto"
         else -> ""
     }
     MySurface(visible = visible, text = text, color = color) {}
@@ -268,22 +267,7 @@ fun BienMal() {
 @Composable
 fun BotonComprobar() {
     OutlinedButton(
-        onClick = {
-            val goodIndex = when (Frecuencias.selectedTipo) {
-                0 -> Frecuencias.memoriaSeleccionada
-                1 -> Frecuencias.frecuenciaSeleccionada
-                else -> Frecuencias.zonaSeleccionada
-            }
-            if (Frecuencias.memoriaSeleccionada == goodIndex
-                && Frecuencias.frecuenciaSeleccionada == goodIndex
-                && Frecuencias.zonaSeleccionada == goodIndex) {
-                state.showBad = false
-                state.showGood = true
-            } else {
-                state.showBad = true
-                state.showGood = false
-            }
-        },
+        onClick = { model.checkAnswer() },
         border = BorderStroke(1.dp, MaterialTheme.colors.error),
         shape = MaterialTheme.shapes.medium,
         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colors.error)
@@ -298,18 +282,7 @@ fun BotonNueva() {
 //    if (model.speak) SendTtsMessage(locution)
     val context = LocalContext.current
     OutlinedButton(
-        onClick = {
-            Frecuencias.setNewPregunta()
-            locution = when (Frecuencias.selectedTipo) {
-                0 -> Frecuencias.selectedItem().numeroTts
-                1 -> Frecuencias.selectedItem().frecuenciaTts()
-                else -> Frecuencias.selectedItem().zonaTts()
-            }
-            state.showBad = false
-            state.showGood = false
-            state.speak = true
-            Log.d("BotonNueva() onClick", "state.speak: ${state.speak}")
-        },
+        onClick = { model.setNewPregunta(context = context) },
         border = BorderStroke(1.dp, MaterialTheme.colors.primaryVariant),
         shape = MaterialTheme.shapes.medium,
         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colors.primaryVariant)
