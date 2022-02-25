@@ -1,10 +1,8 @@
 package com.deslomator.tititiri.model
 
-//import android.util.Log
 import kotlin.random.Random
 
 data class Frecuencia(
-    val id: Int,
     val memoria: Int,
     private val frecuenciaEntero: Int,
     private val frecuenciaDecimal: Int,

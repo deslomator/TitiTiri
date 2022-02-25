@@ -24,7 +24,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.deslomator.tititiri.data.Src
 import com.deslomator.tititiri.model.FrecuenciasModel
 import com.deslomator.tititiri.model.Type
 import com.deslomator.tititiri.ui.theme.TitiTiriTheme
@@ -169,17 +168,15 @@ fun MySurface(
 
 @Composable
 fun MyCombo(
-    items: List<Pair<Int, String>>,
-    selectedIndex: Int,
+    selectedKey: Int,
     default: String,
     tipoPregunta: Type,
-    clickCallback: (Pair<Int, String>) -> Unit,
-    scrambledFreqs: List<Pair<Int, String>>
+    clickCallback: (Int) -> Unit,
+    scrambledItems: Map<Int, String>
 ) {
-    val text = when (selectedIndex) {
-        -1 -> ""
-        0 -> default
-        else -> items[selectedIndex].second
+    val text = when (selectedKey) {
+        -1 -> default
+        else -> scrambledItems[selectedKey]?: ""
     }
     Box(modifier = Modifier
         .wrapContentWidth()
@@ -196,14 +193,14 @@ fun MyCombo(
                 .width(250.dp),
             onDismissRequest = { expanded = false }
         ) {
-            scrambledFreqs.forEach {
+            scrambledItems.forEach {
                 DropdownMenuItem(
                     onClick = {
-                        clickCallback(it)
+                        clickCallback(it.key)
                         expanded = false
                     }) {
                     Text(
-                        if (it.first == 0) default else it.second,
+                        text = it.value,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colors.onPrimary
@@ -217,53 +214,48 @@ fun MyCombo(
 @Composable
 fun Memorias() {
     MyCombo(
-        items = Src.frecuencias.map { Pair(it.id, it.memoria.toString()) },
-        selectedIndex = model.memoriaSeleccionada,
+        selectedKey = model.idMemoriaSeleccionada,
         default = "Memoria",
         tipoPregunta = Type.MEMORY,
-        clickCallback = { p -> model.onMemoriaChanged(p.first) },
-        scrambledFreqs = model.scrambledFreqs().map { Pair(it.id, it.memoria.toString()) }
+        clickCallback = { model.onMemoriaChanged(it) },
+        scrambledItems = model.scrambledMems()
     )
 }
 
 @Composable
 fun Frecuencias() {
     MyCombo(
-        items = Src.frecuencias.map { Pair(it.id, it.frecuencia) },
-        selectedIndex = model.frecuenciaSeleccionada,
+        selectedKey = model.idFrecuenciaSeleccionada,
         default = "Frecuencia",
         tipoPregunta = Type.FREQUENCY,
-        clickCallback = { p -> model.onFrecuenciaChanged(p.first) },
-        scrambledFreqs = model.scrambledFreqs().map { Pair(it.id, it.frecuencia) }
+        clickCallback = { model.onFrecuenciaChanged(it) },
+        scrambledItems = model.scrambledFreqs()
     )
 }
 
 @Composable
 fun Zonas() {
     MyCombo(
-        items = Src.frecuencias.map { Pair(it.id, it.zonaDropdown()) },
-        selectedIndex = model.zonaSeleccionada,
+        selectedKey = model.idZonaSeleccionada,
         default = "Zona",
         tipoPregunta = Type.ZONE,
-        clickCallback = { p -> model.onZonaChanged(p.first) },
-        scrambledFreqs = model.scrambledFreqs().map { Pair(it.id, it.zonaDropdown()) }
+        clickCallback = { model.onZonaChanged(it) },
+        scrambledItems = model.scrambledZones()
     )
 }
 
 @Composable
 fun BienMal() {
     Spacer(modifier = Modifier.height(20.dp))
-    val visible = model.showGood || model.showBad
+    val visible = model.showResult
     val color by animateColorAsState(
         when {
-            model.showBad -> MaterialTheme.colors.error
-            model.showGood -> MaterialTheme.colors.primaryVariant
-            else -> Color.Transparent
+            model.isCorrect -> MaterialTheme.colors.primaryVariant
+            else -> MaterialTheme.colors.error
         })
     val text = when {
-        model.showBad -> "incorrecto"
-        model.showGood -> "correcto"
-        else -> ""
+        model.isCorrect -> "correcto"
+        else -> "incorrecto"
     }
     MySurface(visible = visible, text = text, tipoPregunta = null, color = color) {}
     Spacer(modifier = Modifier.height(40.dp))
@@ -284,7 +276,6 @@ fun BotonComprobar() {
 @Composable
 fun BotonNueva() {
 //    Log.d("BotonNueva() init", "state.speak: ${model.speak}")
-//    if (model.speak) SendTtsMessage(locution)
     val context = LocalContext.current
     OutlinedButton(
         onClick = { model.setNewPregunta(context = context) },

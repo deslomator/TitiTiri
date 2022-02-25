@@ -1,91 +1,118 @@
 package com.deslomator.tititiri.model
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.deslomator.tititiri.TtsHelper
-import com.deslomator.tititiri.data.Src
+import com.deslomator.tititiri.data.DataSource
 import kotlin.random.Random
 
 class FrecuenciasModel : ViewModel() {
 
-    private var selectedIndex = 0
-    private fun selectIndex() {
-        selectedIndex = Random.nextInt(Src.frecuencias.size - 1) + 1
+    private var selectedId = 0
+    private fun selectId() {
+        selectedId = Random.nextInt(DataSource.frecuencias.size)
     }
 
     var selectedTipo by mutableStateOf(Type.MEMORY)
         private set
-    var memoriaSeleccionada by mutableStateOf(0)
+    var idMemoriaSeleccionada by mutableStateOf(-1)
         private set
-    var frecuenciaSeleccionada by mutableStateOf(0)
+    var idFrecuenciaSeleccionada by mutableStateOf(-1)
         private set
-    var zonaSeleccionada by mutableStateOf(0)
+    var idZonaSeleccionada by mutableStateOf(-1)
         private set
-    var showGood by mutableStateOf(false)
+    var isCorrect by mutableStateOf(false)
         private set
-    var showBad by mutableStateOf(false)
+    var showResult by mutableStateOf(false)
         private set
 
     fun onMemoriaChanged(newValue: Int) {
-        memoriaSeleccionada = newValue
+        idMemoriaSeleccionada = newValue
+        showResult = false
     }
 
     fun onFrecuenciaChanged(newValue: Int) {
-        frecuenciaSeleccionada = newValue
+        idFrecuenciaSeleccionada = newValue
+        showResult = false
     }
 
     fun onZonaChanged(newValue: Int) {
-        zonaSeleccionada = newValue
+        idZonaSeleccionada = newValue
+        showResult = false
     }
 
     private fun selectZonas() {
-        for (item in Src.frecuencias) item.elegirZona()
+        for (item in DataSource.frecuencias) item.value.elegirZona()
     }
 
-    private fun selectedItem(): Frecuencia {
-        return Src.frecuencias[selectedIndex]
+    private fun selectedItem(): Frecuencia? {
+        return DataSource.frecuencias[selectedId]
     }
 
     private fun selectTipo() {
         selectedTipo = Type.getRandom()
     }
 
-    fun scrambledFreqs(): List<Frecuencia> {
-        val list: MutableList<Frecuencia> = mutableListOf()
-        list.add(Src.frecuencias[0])
-        while (list.size < Src.frecuencias.size) {
-            val index = Random.nextInt(Src.frecuencias.size - 1) + 1
-            val item = Src.frecuencias[index]
-            if (!list.contains(item)) list.add(item)
+    fun scrambledMems(): Map<Int, String> {
+        val list = mutableMapOf<Int, String>()
+        val src = DataSource.frecuencias.map { it.key to it.value.memoria.toString() }.toMap()
+        while (list.size < src.size) {
+            Log.d("", "list.size: ${list.size}")
+            val key = Random.nextInt(src.size)
+            if (!list.containsKey(key)) src[key]?.let { list.put(key, it) }
+        }
+        return list
+    }
+
+    fun scrambledFreqs(): Map<Int, String> {
+        val list = mutableMapOf<Int, String>()
+        val src = DataSource.frecuencias.map { it.key to it.value.frecuencia }.toMap()
+        while (list.size < src.size) {
+            Log.d("", "list.size: ${list.size}")
+            val key = Random.nextInt(src.size)
+            if (!list.containsKey(key)) src[key]?.let { list.put(key, it) }
+        }
+        return list
+    }
+
+    fun scrambledZones(): Map<Int, String> {
+        val list = mutableMapOf<Int, String>()
+        val src = DataSource.frecuencias.map { it.key to it.value.zonaDropdown() }.toMap()
+        while (list.size < src.size) {
+            Log.d("", "list.size: ${list.size}")
+            val key = Random.nextInt(src.size)
+            if (!list.containsKey(key)) src[key]?.let { list.put(key, it) }
         }
         return list
     }
 
     fun setNewPregunta(context: Context) {
         selectZonas()
-        selectIndex()
+        selectId()
         selectTipo()
 
-        memoriaSeleccionada = -1
-        frecuenciaSeleccionada = -1
-        zonaSeleccionada = -1
+        idMemoriaSeleccionada = -1
+        idFrecuenciaSeleccionada = -1
+        idZonaSeleccionada = -1
         when (selectedTipo) {
-            Type.MEMORY -> memoriaSeleccionada = selectedIndex
-            Type.FREQUENCY -> frecuenciaSeleccionada = selectedIndex
-            Type.ZONE -> zonaSeleccionada = selectedIndex
+            Type.MEMORY -> idMemoriaSeleccionada = selectedId
+            Type.FREQUENCY -> idFrecuenciaSeleccionada = selectedId
+            Type.ZONE -> idZonaSeleccionada = selectedId
         }
-        showBad = false
-        showGood = false
+
+        showResult = false
+        isCorrect = false
 
         val locution = when (selectedTipo) {
-            Type.MEMORY -> selectedItem().numeroTts
-            Type.FREQUENCY -> selectedItem().frecuenciaTts()
-            Type.ZONE -> selectedItem().zonaTts()
+            Type.MEMORY -> selectedItem()?.numeroTts
+            Type.FREQUENCY -> selectedItem()?.frecuenciaTts()
+            Type.ZONE -> selectedItem()?.zonaTts()
         }
-        sendTtsMessage(context = context, locution = locution)
+        sendTtsMessage(context = context, locution = locution?: "")
     }
 
     private fun sendTtsMessage(context: Context, locution: String) {
@@ -97,19 +124,13 @@ class FrecuenciasModel : ViewModel() {
 
     fun checkAnswer() {
         val goodIndex = when (selectedTipo) {
-            Type.MEMORY -> memoriaSeleccionada
-            Type.FREQUENCY -> frecuenciaSeleccionada
-            Type.ZONE -> zonaSeleccionada
+            Type.MEMORY -> idMemoriaSeleccionada
+            Type.FREQUENCY -> idFrecuenciaSeleccionada
+            Type.ZONE -> idZonaSeleccionada
         }
-        if (memoriaSeleccionada == goodIndex
-            && frecuenciaSeleccionada == goodIndex
-            && zonaSeleccionada == goodIndex
-        ) {
-            showBad = false
-            showGood = true
-        } else {
-            showBad = true
-            showGood = false
-        }
+        isCorrect = (idMemoriaSeleccionada == goodIndex
+                && idFrecuenciaSeleccionada == goodIndex
+                && idZonaSeleccionada == goodIndex)
+        showResult = true
     }
 }
