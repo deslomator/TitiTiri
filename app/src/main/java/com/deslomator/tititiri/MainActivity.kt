@@ -175,6 +175,7 @@ fun MyCombo(
     scrambledItems: Map<Int, String>
 ) {
     val text = when (selectedKey) {
+        -2 -> ""
         -1 -> default
         else -> scrambledItems[selectedKey]?: ""
     }

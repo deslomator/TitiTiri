@@ -19,13 +19,15 @@ class FrecuenciasModel : ViewModel() {
 
     var selectedTipo by mutableStateOf(Type.MEMORY)
         private set
+
+    // -2 shows empty mySurface, -1 shows default string
     var idMemoriaSeleccionada by mutableStateOf(-1)
         private set
     var idFrecuenciaSeleccionada by mutableStateOf(-1)
         private set
     var idZonaSeleccionada by mutableStateOf(-1)
         private set
-    var isCorrect by mutableStateOf(false)
+    var isCorrect by mutableStateOf(true)
         private set
     var showResult by mutableStateOf(false)
         private set
@@ -95,9 +97,9 @@ class FrecuenciasModel : ViewModel() {
         selectId()
         selectTipo()
 
-        idMemoriaSeleccionada = -1
-        idFrecuenciaSeleccionada = -1
-        idZonaSeleccionada = -1
+        idMemoriaSeleccionada = -2
+        idFrecuenciaSeleccionada = -2
+        idZonaSeleccionada = -2
         when (selectedTipo) {
             Type.MEMORY -> idMemoriaSeleccionada = selectedId
             Type.FREQUENCY -> idFrecuenciaSeleccionada = selectedId
