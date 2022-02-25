@@ -1,9 +1,11 @@
 package com.deslomator.tititiri
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import kotlin.random.Random
 
@@ -93,11 +95,44 @@ object Frecuencias : ViewModel() {
                 zonaSeleccionada = selectedIndex
             }
         }
-        state.showBad = false
-        state.showGood = false
-        state.speak = true
+        showBad = false
+        showGood = false
+
+        val locution = when (selectedTipo) {
+            0 -> selectedItem().numeroTts
+            1 -> selectedItem().frecuenciaTts()
+            else -> selectedItem().zonaTts()
+        }
+        sendTtsMessage(context = context, locution = locution)
     }
 
+    private fun sendTtsMessage(context: Context, locution: String) {
+        Log.d("sendTtsMessage()", "inicializando, locution: $locution")
+        if (locution.length > 1) {
+            TtsHelper(context = context, locution = locution)
+        }
+    }
+
+    fun checkAnswer() {
+        val goodIndex = when (selectedTipo) {
+            0 -> memoriaSeleccionada
+            1 -> frecuenciaSeleccionada
+            else -> zonaSeleccionada
+        }
+        if (memoriaSeleccionada == goodIndex
+            && frecuenciaSeleccionada == goodIndex
+            && zonaSeleccionada == goodIndex
+        ) {
+            showBad = false
+            showGood = true
+        } else {
+            showBad = true
+            showGood = false
+        }
+    }
+}
+
+object src {
     val frecuencias = listOf(
         Frecuencia(0, 0, 0, 0, listOf("")),
         Frecuencia(1, 1, 121, 705, listOf("plataforma T 2 sur")),

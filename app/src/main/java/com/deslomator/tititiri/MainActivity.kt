@@ -294,9 +294,9 @@ fun BotonComprobar() {
 
 @Composable
 fun BotonNueva() {
-    Log.d("BotonNueva() init", "state.speak: ${state.speak}")
-    var locution by remember { mutableStateOf("") }
-    if (state.speak) SendTtsMessage(locution)
+//    Log.d("BotonNueva() init", "state.speak: ${model.speak}")
+//    if (model.speak) SendTtsMessage(locution)
+    val context = LocalContext.current
     OutlinedButton(
         onClick = {
             Frecuencias.setNewPregunta()
@@ -315,15 +315,6 @@ fun BotonNueva() {
         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colors.primaryVariant)
     ){
         Text( text = "NUEVA PREGUNTA" )
-    }
-}
-
-@Composable
-private fun SendTtsMessage(locution: String) {
-    Log.d("sendTtsMessage()", "inicializando, locution: $locution")
-    state.speak = false
-    if (locution.length > 1) {
-        TtsHelper(LocalContext.current, locution = locution)
     }
 }
 
