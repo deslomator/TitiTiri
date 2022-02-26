@@ -13,3 +13,5 @@ enum class Type(val value: Int) {
         fun getRandom(): Type { return get(Random.nextInt(values().size))!! }
     }
 }
+
+enum class Show {EMPTY, DEFAULT, ITEM}

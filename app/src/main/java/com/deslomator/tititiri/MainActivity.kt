@@ -24,11 +24,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.deslomator.tititiri.model.FrecuenciasModel
+import com.deslomator.tititiri.model.FrequenciesModel
+import com.deslomator.tititiri.model.Show
 import com.deslomator.tititiri.model.Type
 import com.deslomator.tititiri.ui.theme.TitiTiriTheme
+import java.util.*
 
-val model = FrecuenciasModel()
+val model = FrequenciesModel()
 
 class MainActivity : ComponentActivity() {
 
@@ -142,7 +144,7 @@ fun MySurface(
     color: Color = MaterialTheme.colors.background,
     clickCallback: () -> Unit) {
     val animColor by animateColorAsState(
-        when (model.selectedTipo) {
+        when (model.selectedType) {
             tipoPregunta -> MaterialTheme.colors.primaryVariant
             else -> MaterialTheme.colors.primary
         })
@@ -168,24 +170,25 @@ fun MySurface(
 
 @Composable
 fun MyCombo(
-    selectedKey: Int,
+    showText: Show,
     default: String,
     tipoPregunta: Type,
-    clickCallback: (Int) -> Unit,
-    scrambledItems: Map<Int, String>
+    clickCallback: (UUID) -> Unit,
+    scrambledItems: List<Pair<UUID, String>>,
+    surfaceText: String
 ) {
-    val text = when (selectedKey) {
-        -2 -> ""
-        -1 -> default
-        else -> scrambledItems[selectedKey]?: ""
+    val surfText = when (showText) {
+        Show.EMPTY -> ""
+        Show.DEFAULT -> default
+        Show.ITEM -> surfaceText
     }
     Box(modifier = Modifier
         .wrapContentWidth()
         .padding(10.dp)
     ) {
         var expanded by remember { mutableStateOf(false) }
-        MySurface(text = text, tipoPregunta = tipoPregunta) {
-            if (model.selectedTipo != tipoPregunta) expanded = true
+        MySurface(text = surfText, tipoPregunta = tipoPregunta) {
+            if (model.selectedType != tipoPregunta) expanded = true
         }
         DropdownMenu(
             expanded = expanded,
@@ -197,11 +200,11 @@ fun MyCombo(
             scrambledItems.forEach {
                 DropdownMenuItem(
                     onClick = {
-                        clickCallback(it.key)
+                        clickCallback(it.first)
                         expanded = false
                     }) {
                     Text(
-                        text = it.value,
+                        text = it.second,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colors.onPrimary
@@ -215,33 +218,36 @@ fun MyCombo(
 @Composable
 fun Memorias() {
     MyCombo(
-        selectedKey = model.idMemoriaSeleccionada,
+        showText = model.showTextMemory,
         default = "Memoria",
         tipoPregunta = Type.MEMORY,
-        clickCallback = { model.onMemoriaChanged(it) },
-        scrambledItems = model.scrambledMems()
+        clickCallback = { model.onDropdownMemoryItemClicked(it) },
+        scrambledItems = model.scrambledMems(),
+        surfaceText = model.dropdownSelectedMemory()
     )
 }
 
 @Composable
 fun Frecuencias() {
     MyCombo(
-        selectedKey = model.idFrecuenciaSeleccionada,
+        showText = model.showTextFrequency,
         default = "Frecuencia",
         tipoPregunta = Type.FREQUENCY,
-        clickCallback = { model.onFrecuenciaChanged(it) },
-        scrambledItems = model.scrambledFreqs()
+        clickCallback = { model.onDropdownFrequencyItemClicked(it) },
+        scrambledItems = model.scrambledFreqs(),
+        surfaceText = model.dropdownSelectedFrequency()
     )
 }
 
 @Composable
 fun Zonas() {
     MyCombo(
-        selectedKey = model.idZonaSeleccionada,
+        showText = model.showTextZone,
         default = "Zona",
         tipoPregunta = Type.ZONE,
-        clickCallback = { model.onZonaChanged(it) },
-        scrambledItems = model.scrambledZones()
+        clickCallback = { model.onDropdownZoneItemClicked(it) },
+        scrambledItems = model.scrambledZones(),
+        surfaceText = model.dropdownSelectedZone()
     )
 }
 
@@ -279,7 +285,7 @@ fun BotonNueva() {
 //    Log.d("BotonNueva() init", "state.speak: ${model.speak}")
     val context = LocalContext.current
     OutlinedButton(
-        onClick = { model.setNewPregunta(context = context) },
+        onClick = { model.setNewQuestion(context = context) },
         border = BorderStroke(1.dp, MaterialTheme.colors.primaryVariant),
         shape = MaterialTheme.shapes.medium,
         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colors.primaryVariant)
